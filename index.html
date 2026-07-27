@@ -1,392 +1,8 @@
-<!DOCTYPE html>
-<html lang="es" class="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Financiero Personal</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' }
-    </script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen pb-10 transition-colors duration-300">
-
-    <!-- Encabezado -->
-    <header class="bg-indigo-600 dark:bg-indigo-900 text-white py-6 shadow-md mb-8">
-        <div class="max-w-5xl mx-auto px-4 flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold">💎 Control Financiero</h1>
-                <p class="text-indigo-200 text-sm mt-1">Ingresos, Gastos, Presupuesto y Estadísticas</p>
-            </div>
-            <!-- Botón Modo Oscuro -->
-            <button id="themeToggle" onclick="toggleTheme()" class="bg-indigo-700 dark:bg-indigo-800 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2">
-                <span id="themeIcon">🌙</span> <span id="themeText">Modo Oscuro</span>
-            </button>
-        </div>
-    </header>
-
-    <main class="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
-
-        <!-- Columna Izquierda: Formulario, Presupuesto y Filtros -->
-        <div class="space-y-6">
-            
-            <!-- Formulario de Movimientos -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-semibold mb-4 text-indigo-700 dark:text-indigo-400">➕ Registrar Movimiento</h2>
-                <form id="transactionForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Tipo</label>
-                        <select id="type" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                            <option value="expense">📉 Gasto</option>
-                            <option value="income">📈 Ingreso (Ganancia)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Descripción</label>
-                        <input type="text" id="desc" placeholder="Ej. Sueldo, Almuerzo, Proyecto Freelance" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Monto ($)</label>
-                        <input type="number" id="amount" step="0.01" placeholder="0.00" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Categoría</label>
-                        <select id="category" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                            <option value="Comida">🍔 Comida</option>
-                            <option value="Transporte">🚗 Transporte</option>
-                            <option value="Ocio">🎬 Ocio</option>
-                            <option value="Salud">🏥 Salud</option>
-                            <option value="Ahorro">💰 Ahorro</option>
-                            <option value="Servicios">🏠 Servicios / Hogar</option>
-                            <option value="Educación">📚 Educación</option>
-                            <option value="Sueldo/Ingreso">💵 Sueldo / Ventas</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Fecha</label>
-                        <input type="date" id="date" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition duration-200">
-                        Guardar Registro
-                    </button>
-                </form>
-            </div>
-
-            <!-- Configuración de Presupuesto Límite -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🎯 Presupuesto Límite Mensual</h2>
-                <div class="flex gap-2 mb-3">
-                    <input type="number" id="budgetInput" placeholder="Ej. 1000" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    <button onclick="saveBudget()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">Establecer</button>
-                </div>
-                <!-- Barra de Progreso del Presupuesto -->
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden mt-2">
-                    <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <p id="budgetStatus" class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">Sin presupuesto establecido</p>
-            </div>
-
-            <!-- Filtros de Tiempo y Acciones de Archivos -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-indigo-700 dark:text-indigo-400">🔍 Filtros y Exportación</h2>
-                    <button id="clearBtn" class="text-xs bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1.5 rounded-lg transition">🗑️ Limpiar</button>
-                </div>
-                <div class="grid grid-cols-3 gap-2 mb-4">
-                    <button onclick="setFilter('daily')" class="filter-btn bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 py-2 rounded-lg font-medium text-sm">Diario</button>
-                    <button onclick="setFilter('weekly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Semanal</button>
-                    <button onclick="setFilter('monthly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Mensual</button>
-                </div>
-                <button onclick="exportToCSV()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm">
-                    📊 Exportar a Excel / CSV
-                </button>
-            </div>
-
-        </div>
-
-        <!-- Columna Derecha: Tarjetas, Gráficos e Historial -->
-        <div class="space-y-6">
-            
-            <!-- Resumen Financiero (3 Tarjetas) -->
-            <div class="grid grid-cols-3 gap-3">
-                <div class="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 text-center">
-                    <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Ingresos</span>
-                    <h3 id="incomeDisplay" class="text-lg font-bold text-emerald-700 dark:text-emerald-300">$0.00</h3>
-                </div>
-                <div class="bg-rose-50 dark:bg-rose-950/40 p-4 rounded-xl border border-rose-200 dark:border-rose-800 text-center">
-                    <span class="text-xs text-rose-600 dark:text-rose-400 font-semibold uppercase">Gastos</span>
-                    <h3 id="expenseDisplay" class="text-lg font-bold text-rose-700 dark:text-rose-300">$0.00</h3>
-                </div>
-                <div class="bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-xl border border-indigo-200 dark:border-indigo-800 text-center">
-                    <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase">Balance</span>
-                    <h3 id="balanceDisplay" class="text-lg font-bold text-indigo-900 dark:text-indigo-200">$0.00</h3>
-                </div>
-            </div>
-
-            <!-- Gráfico 1: Categorías (Rosquilla) -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🍩 Gastos por Categoría</h2>
-                <div class="relative max-w-xs mx-auto">
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Gráfico 2: Comparativa Mensual (Barras) -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">📊 Comparativa de Ingresos vs Gastos</h2>
-                <canvas id="barChart"></canvas>
-            </div>
-
-            <!-- Historial -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">📋 Historial de Transacciones</h2>
-                <ul id="transactionList" class="divide-y divide-gray-100 dark:divide-gray-700 max-h-52 overflow-y-auto"></ul>
-            </div>
-
-        </div>
-
-    </main>
-
-    <script>
-        // Estado Global
-        let transactions = JSON.parse(localStorage.getItem('myTransactions')) || [];
-        let monthlyBudget = parseFloat(localStorage.getItem('myBudget')) || 0;
-        let currentFilter = 'monthly';
-        let categoryChartInstance = null;
-        let barChartInstance = null;
-
-        document.getElementById('date').valueAsDate = new Date();
-        if(monthlyBudget > 0) document.getElementById('budgetInput').value = monthlyBudget;
-
-        // Guardar Transacción
-        document.getElementById('transactionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const type = document.getElementById('type').value;
-            const desc = document.getElementById('desc').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-            const category = document.getElementById('category').value;
-            const date = document.getElementById('date').value;
-
-            transactions.push({ id: Date.now(), type, desc, amount, category, date });
-            saveAndRender();
-
-            document.getElementById('desc').value = '';
-            document.getElementById('amount').value = '';
-        });
-
-        // Guardar Presupuesto
-        function saveBudget() {
-            const val = parseFloat(document.getElementById('budgetInput').value);
-            monthlyBudget = isNaN(val) ? 0 : val;
-            localStorage.setItem('myBudget', monthlyBudget);
-            render();
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('myTransactions', JSON.stringify(transactions));
-            render();
-        }
-
-        function setFilter(type) {
-            currentFilter = type;
-            render();
-        }
-
-        // Filtro por Fecha
-        function getFilteredTransactions() {
-            const now = new Date();
-            return transactions.filter(item => {
-                const itemDate = new Date(item.date + 'T00:00:00');
-                if (currentFilter === 'daily') {
-                    return itemDate.toDateString() === now.toDateString();
-                } else if (currentFilter === 'weekly') {
-                    const oneWeekAgo = new Date(now);
-                    oneWeekAgo.setDate(now.getDate() - 7);
-                    return itemDate >= oneWeekAgo && itemDate <= now;
-                } else if (currentFilter === 'monthly') {
-                    return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
-                }
-                return true;
-            });
-        }
-
-        // Renderizado Principal
-        function render() {
-            const filtered = getFilteredTransactions();
-            const listEl = document.getElementById('transactionList');
-            
-            let totalIncome = 0;
-            let totalExpense = 0;
-            const categoryTotals = {};
-
-            listEl.innerHTML = '';
-
-            filtered.forEach(item => {
-                if(item.type === 'income') {
-                    totalIncome += item.amount;
-                } else {
-                    totalExpense += item.amount;
-                    categoryTotals[item.category] = (categoryTotals[item.category] || 0) + item.amount;
-                }
-
-                const li = document.createElement('li');
-                li.className = 'py-3 flex justify-between items-center text-sm';
-                const isIncome = item.type === 'income';
-                li.innerHTML = `
-                    <div>
-                        <p class="font-medium text-gray-800 dark:text-gray-200">${item.desc}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">${item.category} • ${item.date}</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
-                            ${isIncome ? '+' : '-'}$${item.amount.toFixed(2)}
-                        </span>
-                        <button onclick="deleteTransaction(${item.id})" class="text-red-400 hover:text-red-600 text-xs">✕</button>
-                    </div>
-                `;
-                listEl.appendChild(li);
-            });
-
-            if (filtered.length === 0) {
-                listEl.innerHTML = '<p class="text-center text-gray-400 py-4 text-sm">Sin registros en este periodo.</p>';
-            }
-
-            // Actualizar Totales
-            document.getElementById('incomeDisplay').textContent = `$${totalIncome.toFixed(2)}`;
-            document.getElementById('expenseDisplay').textContent = `$${totalExpense.toFixed(2)}`;
-            const balance = totalIncome - totalExpense;
-            document.getElementById('balanceDisplay').textContent = `$${balance.toFixed(2)}`;
-
-            // Actualizar Presupuesto
-            updateBudgetProgress(totalExpense);
-
-            // Renderizar Gráficos
-            renderCategoryChart(categoryTotals);
-            renderBarChart(totalIncome, totalExpense);
-        }
-
-        // Progreso de Presupuesto
-        function updateBudgetProgress(currentExpenses) {
-            const progressBar = document.getElementById('progressBar');
-            const statusText = document.getElementById('budgetStatus');
-
-            if (monthlyBudget <= 0) {
-                progressBar.style.width = '0%';
-                statusText.textContent = 'Sin presupuesto establecido';
-                return;
-            }
-
-            const percentage = Math.min((currentExpenses / monthlyBudget) * 100, 100);
-            progressBar.style.width = `${percentage}%`;
-
-            if (currentExpenses > monthlyBudget) {
-                progressBar.className = 'bg-rose-600 h-full transition-all duration-500';
-                statusText.textContent = `⚠️ Presupuesto excedido ($${currentExpenses.toFixed(2)} / $${monthlyBudget.toFixed(2)})`;
-                statusText.className = 'text-xs text-rose-600 font-bold mt-2 text-center';
-            } else {
-                progressBar.className = 'bg-emerald-500 h-full transition-all duration-500';
-                statusText.textContent = `Utilizado: $${currentExpenses.toFixed(2)} de $${monthlyBudget.toFixed(2)} (${percentage.toFixed(0)}%)`;
-                statusText.className = 'text-xs text-gray-500 dark:text-gray-400 mt-2 text-center';
-            }
-        }
-
-        function deleteTransaction(id) {
-            transactions = transactions.filter(t => t.id !== id);
-            saveAndRender();
-        }
-
-        document.getElementById('clearBtn').addEventListener('click', function() {
-            if (confirm('¿Deseas eliminar todo el historial?')) {
-                transactions = [];
-                saveAndRender();
-            }
-        });
-
-        // Exportar CSV / Excel
-        function exportToCSV() {
-            if(transactions.length === 0) {
-                alert('No hay datos para exportar');
-                return;
-            }
-            let csvContent = "data:text/csv;charset=utf-8,Tipo,Descripcion,Monto,Categoria,Fecha\n";
-            transactions.forEach(t => {
-                csvContent += `${t.type},${t.desc},${t.amount},${t.category},${t.date}\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `finanzas_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Modo Oscuro
-        function toggleTheme() {
-            const html = document.documentElement;
-            const icon = document.getElementById('themeIcon');
-            const text = document.getElementById('themeText');
-            if(html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                icon.textContent = '🌙';
-                text.textContent = 'Modo Oscuro';
-            } else {
-                html.classList.add('dark');
-                icon.textContent = '☀️';
-                text.textContent = 'Modo Claro';
-            }
-        }
-
-        // Gráfico Categorías (Rosquilla)
-        function renderCategoryChart(categoryTotals) {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            if (categoryChartInstance) categoryChartInstance.destroy();
-
-            categoryChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(categoryTotals),
-                    datasets: [{
-                        data: Object.values(categoryTotals),
-                        backgroundColor: ['#F59E0B', '#EF4444', '#8B5CF6', '#10B981', '#3B82F6', '#6366F1', '#EC4899', '#14B8A6']
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-            });
-        }
-
-        // Gráfico Barras (Comparativa)
-        function renderBarChart(income, expense) {
-            const ctx = document.getElementById('barChart').getContext('2d');
-            if (barChartInstance) barChartInstance.destroy();
-
-            barChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Ingresos', 'Gastos'],
-                    datasets: [{
-                        label: 'Monto Total ($)',
-                        data: [income, expense],
-                        backgroundColor: ['#10B981', '#EF4444']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        }
-
-        render();
-    </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  // Configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDPZI2o8QAFRx0XNmbYipkTxzWFQvUdrrI",
     authDomain: "mis-gastos-familiares.firebaseapp.com",
@@ -396,45 +12,232 @@
     appId: "1:391296606617:web:e9d413c9fb36d321dc7308"
   };
 
+  // Inicializar Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const txCollection = collection(db, "transactions");
 
-  // Reemplazar la función de guardar para enviar datos a Firestore
-  window.addTransaction = async function(e) {
-    if (e) e.preventDefault();
-    const description = document.getElementById('description').value;
-    const amount = parseFloat(document.getElementById('amount').value);
-    const type = document.getElementById('type').value;
-    const category = document.getElementById('category').value;
+  // Variables globales de estado
+  window.transactions = [];
+  let monthlyBudget = parseFloat(localStorage.getItem('myBudget')) || 0;
+  let currentFilter = 'monthly';
+  let categoryChartInstance = null;
+  let barChartInstance = null;
 
-    if (!description || isNaN(amount)) return;
+  document.getElementById('date').valueAsDate = new Date();
+  if (monthlyBudget > 0) document.getElementById('budgetInput').value = monthlyBudget;
+
+  // 1. Guardar Movimiento en Firestore
+  document.getElementById('transactionForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const type = document.getElementById('type').value;
+    const desc = document.getElementById('desc').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const category = document.getElementById('category').value;
+    const date = document.getElementById('date').value;
+
+    if (!desc || isNaN(amount)) return;
 
     try {
       await addDoc(txCollection, {
-        description,
-        amount,
         type,
+        desc,
+        amount,
         category,
-        date: new Date().toISOString()
+        date
       });
-      document.getElementById('transactionForm').reset();
+      document.getElementById('desc').value = '';
+      document.getElementById('amount').value = '';
     } catch (error) {
-      console.error("Error al guardar en Firestore: ", error);
+      console.error("Error al guardar en Firestore:", error);
+    }
+  });
+
+  // 2. Escuchar cambios en tiempo real desde Firestore
+  onSnapshot(txCollection, (snapshot) => {
+    window.transactions = snapshot.docs.map(docSnapshot => ({
+      id: docSnapshot.id,
+      ...docSnapshot.data()
+    }));
+    render();
+  });
+
+  // 3. Eliminar Movimiento de Firestore
+  window.deleteTransaction = async function(docId) {
+    try {
+      await deleteDoc(doc(db, "transactions", docId));
+    } catch (error) {
+      console.error("Error al eliminar de Firestore:", error);
     }
   };
 
-  // Escuchar cambios en tiempo real desde Firestore
-  onSnapshot(txCollection, (snapshot) => {
-    window.transactions = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    if (typeof window.render === 'function') {
-      window.render();
-    }
-  });
-</script>
+  // Funciones de presupuesto y filtros
+  window.saveBudget = function() {
+    const val = parseFloat(document.getElementById('budgetInput').value);
+    monthlyBudget = isNaN(val) ? 0 : val;
+    localStorage.setItem('myBudget', monthlyBudget);
+    render();
+  };
+
+  window.setFilter = function(type) {
+    currentFilter = type;
+    render();
+  };
+
+  function getFilteredTransactions() {
+    const now = new Date();
+    return window.transactions.filter(item => {
+      const itemDate = new Date(item.date + 'T00:00:00');
+      if (currentFilter === 'daily') {
+        return itemDate.toDateString() === now.toDateString();
+      } else if (currentFilter === 'weekly') {
+        const oneWeekAgo = new Date(now);
+        oneWeekAgo.setDate(now.getDate() - 7);
+        return itemDate >= oneWeekAgo && itemDate <= now;
+      } else if (currentFilter === 'monthly') {
+        return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+      }
+      return true;
+    });
+  }
+
+  // 4. Renderizado Principal
+  function render() {
+    const filtered = getFilteredTransactions();
+    const listEl = document.getElementById('transactionList');
     
-</body>
-</html>
+    let totalIncome = 0;
+    let totalExpense = 0;
+    const categoryTotals = {};
+    listEl.innerHTML = '';
+
+    filtered.forEach(item => {
+      if (item.type === 'income') {
+        totalIncome += item.amount;
+      } else {
+        totalExpense += item.amount;
+        categoryTotals[item.category] = (categoryTotals[item.category] || 0) + item.amount;
+      }
+      const li = document.createElement('li');
+      li.className = 'py-3 flex justify-between items-center text-sm';
+      const isIncome = item.type === 'income';
+      li.innerHTML = `
+        <div>
+          <p class="font-medium text-gray-800 dark:text-gray-200">${item.desc}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">${item.category} • ${item.date}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
+            ${isIncome ? '+' : '-'}$${item.amount.toFixed(2)}
+          </span>
+          <button onclick="deleteTransaction('${item.id}')" class="text-red-400 hover:text-red-600 text-xs">✕</button>
+        </div>
+      `;
+      listEl.appendChild(li);
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<p class="text-center text-gray-400 py-4 text-sm">Sin registros en este periodo.</p>';
+    }
+
+    document.getElementById('incomeDisplay').textContent = `$${totalIncome.toFixed(2)}`;
+    document.getElementById('expenseDisplay').textContent = `$${totalExpense.toFixed(2)}`;
+    const balance = totalIncome - totalExpense;
+    document.getElementById('balanceDisplay').textContent = `$${balance.toFixed(2)}`;
+
+    updateBudgetProgress(totalExpense);
+    renderCategoryChart(categoryTotals);
+    renderBarChart(totalIncome, totalExpense);
+  }
+
+  function updateBudgetProgress(currentExpenses) {
+    const progressBar = document.getElementById('progressBar');
+    const statusText = document.getElementById('budgetStatus');
+    if (monthlyBudget <= 0) {
+      progressBar.style.width = '0%';
+      statusText.textContent = 'Sin presupuesto establecido';
+      return;
+    }
+    const percentage = Math.min((currentExpenses / monthlyBudget) * 100, 100);
+    progressBar.style.width = `${percentage}%`;
+    if (currentExpenses > monthlyBudget) {
+      progressBar.className = 'bg-rose-600 h-full transition-all duration-500';
+      statusText.textContent = `⚠️ Presupuesto excedido ($${currentExpenses.toFixed(2)} / $${monthlyBudget.toFixed(2)})`;
+      statusText.className = 'text-xs text-rose-600 font-bold mt-2 text-center';
+    } else {
+      progressBar.className = 'bg-emerald-500 h-full transition-all duration-500';
+      statusText.textContent = `Utilizado: $${currentExpenses.toFixed(2)} de $${monthlyBudget.toFixed(2)} (${percentage.toFixed(0)}%)`;
+      statusText.className = 'text-xs text-gray-500 dark:text-gray-400 mt-2 text-center';
+    }
+  }
+
+  window.toggleTheme = function() {
+    const html = document.documentElement;
+    const icon = document.getElementById('themeIcon');
+    const text = document.getElementById('themeText');
+    if (html.classList.contains('dark')) {
+      html.classList.remove('dark');
+      icon.textContent = '🌙';
+      text.textContent = 'Modo Oscuro';
+    } else {
+      html.classList.add('dark');
+      icon.textContent = '☀️';
+      text.textContent = 'Modo Claro';
+    }
+  };
+
+  window.exportToCSV = function() {
+    if (window.transactions.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+    let csvContent = "data:text/csv;charset=utf-8,Tipo,Descripcion,Monto,Categoria,Fecha\n";
+    window.transactions.forEach(t => {
+      csvContent += `${t.type},${t.desc},${t.amount},${t.category},${t.date}\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `finanzas_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  function renderCategoryChart(categoryTotals) {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    if (categoryChartInstance) categoryChartInstance.destroy();
+    categoryChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(categoryTotals),
+        datasets: [{
+          data: Object.values(categoryTotals),
+          backgroundColor: ['#F59E0B', '#EF4444', '#8B5CF6', '#10B981', '#3B82F6', '#6366F1', '#EC4899', '#14B8A6']
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  function renderBarChart(income, expense) {
+    const ctx = document.getElementById('barChart').getContext('2d');
+    if (barChartInstance) barChartInstance.destroy();
+    barChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Ingresos', 'Gastos'],
+        datasets: [{
+          label: 'Monto Total ($)',
+          data: [income, expense],
+          backgroundColor: ['#10B981', '#EF4444']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+</script>
