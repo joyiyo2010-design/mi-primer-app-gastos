@@ -383,5 +383,22 @@
 
         render();
     </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDPZI2o8QAFRx0XNmbYipkTxzWFQvUdrrI",
+    authDomain: "mis-gastos-familiares.firebaseapp.com",
+    projectId: "mis-gastos-familiares",
+    storageBucket: "mis-gastos-familiares.firebasestorage.app",
+    messagingSenderId: "391296606617",
+    appId: "1:391296606617:web:e9d413c9fb36d321dc7308"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+</script>
+    
 </body>
 </html>
