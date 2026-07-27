@@ -398,6 +398,42 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const txCollection = collection(db, "transactions");
+
+  // Reemplazar la función de guardar para enviar datos a Firestore
+  window.addTransaction = async function(e) {
+    if (e) e.preventDefault();
+    const description = document.getElementById('description').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const type = document.getElementById('type').value;
+    const category = document.getElementById('category').value;
+
+    if (!description || isNaN(amount)) return;
+
+    try {
+      await addDoc(txCollection, {
+        description,
+        amount,
+        type,
+        category,
+        date: new Date().toISOString()
+      });
+      document.getElementById('transactionForm').reset();
+    } catch (error) {
+      console.error("Error al guardar en Firestore: ", error);
+    }
+  };
+
+  // Escuchar cambios en tiempo real desde Firestore
+  onSnapshot(txCollection, (snapshot) => {
+    window.transactions = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    if (typeof window.render === 'function') {
+      window.render();
+    }
+  });
 </script>
     
 </body>
