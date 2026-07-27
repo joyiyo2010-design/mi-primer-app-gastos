@@ -1,3 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Financiero Personal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen pb-10 transition-colors duration-300">
+    <!-- Encabezado -->
+    <header class="bg-indigo-600 dark:bg-indigo-900 text-white py-6 shadow-md mb-8">
+        <div class="max-w-5xl mx-auto px-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold">💎 Control Financiero</h1>
+                <p class="text-indigo-200 text-sm mt-1">Ingresos, Gastos, Presupuesto y Estadísticas</p>
+            </div>
+            <!-- Botón Modo Oscuro -->
+            <button id="themeToggle" onclick="toggleTheme()" class="bg-indigo-700 dark:bg-indigo-800 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                <span id="themeIcon">🌙</span> <span id="themeText">Modo Oscuro</span>
+            </button>
+        </div>
+    </header>
+    <main class="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Columna Izquierda: Formulario, Presupuesto y Filtros -->
+        <div class="space-y-6">
+            
+            <!-- Formulario de Movimientos -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 text-indigo-700 dark:text-indigo-400">➕ Registrar Movimiento</h2>
+                <form id="transactionForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Tipo</label>
+                        <select id="type" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="expense">📉 Gasto</option>
+                            <option value="income">📈 Ingreso (Ganancia)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Descripción</label>
+                        <input type="text" id="desc" placeholder="Ej. Sueldo, Almuerzo, Proyecto Freelance" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Monto ($)</label>
+                        <input type="number" id="amount" step="0.01" placeholder="0.00" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Categoría</label>
+                        <select id="category" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <option value="Comida">🍔 Comida</option>
+                            <option value="Transporte">🚗 Transporte</option>
+                            <option value="Ocio">🎬 Ocio</option>
+                            <option value="Salud">🏥 Salud</option>
+                            <option value="Ahorro">💰 Ahorro</option>
+                            <option value="Servicios">🏠 Servicios / Hogar</option>
+                            <option value="Educación">📚 Educación</option>
+                            <option value="Sueldo/Ingreso">💵 Sueldo / Ventas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Fecha</label>
+                        <input type="date" id="date" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition duration-200">
+                        Guardar Registro
+                    </button>
+                </form>
+            </div>
+            <!-- Configuración de Presupuesto Límite -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🎯 Presupuesto Límite Mensual</h2>
+                <div class="flex gap-2 mb-3">
+                    <input type="number" id="budgetInput" placeholder="Ej. 1000" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <button onclick="saveBudget()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">Establecer</button>
+                </div>
+                <!-- Barra de Progreso del Presupuesto -->
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden mt-2">
+                    <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p id="budgetStatus" class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">Sin presupuesto establecido</p>
+            </div>
+            <!-- Filtros de Tiempo y Acciones de Archivos -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-indigo-700 dark:text-indigo-400">🔍 Filtros y Exportación</h2>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <button onclick="setFilter('daily')" class="filter-btn bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 py-2 rounded-lg font-medium text-sm">Diario</button>
+                    <button onclick="setFilter('weekly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Semanal</button>
+                    <button onclick="setFilter('monthly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Mensual</button>
+                </div>
+                <button onclick="exportToCSV()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm">
+                    📊 Exportar a Excel / CSV
+                </button>
+            </div>
+        </div>
+        <!-- Columna Derecha: Tarjetas, Gráficos e Historial -->
+        <div class="space-y-6">
+            
+            <!-- Resumen Financiero (3 Tarjetas) -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 text-center">
+                    <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Ingresos</span>
+                    <h3 id="incomeDisplay" class="text-lg font-bold text-emerald-700 dark:text-emerald-300">$0.00</h3>
+                </div>
+                <div class="bg-rose-50 dark:bg-rose-950/40 p-4 rounded-xl border border-rose-200 dark:border-rose-800 text-center">
+                    <span class="text-xs text-rose-600 dark:text-rose-400 font-semibold uppercase">Gastos</span>
+                    <h3 id="expenseDisplay" class="text-lg font-bold text-rose-700 dark:text-rose-300">$0.00</h3>
+                </div>
+                <div class="bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-xl border border-indigo-200 dark:border-indigo-800 text-center">
+                    <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase">Balance</span>
+                    <h3 id="balanceDisplay" class="text-lg font-bold text-indigo-900 dark:text-indigo-200">$0.00</h3>
+                </div>
+            </div>
+            <!-- Gráfico 1: Categorías (Rosquilla) -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🍩 Gastos por Categoría</h2>
+                <div class="relative max-w-xs mx-auto">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+            <!-- Gráfico 2: Comparativa Mensual (Barras) -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">📊 Comparativa de Ingresos vs Gastos</h2>
+                <canvas id="barChart"></canvas>
+            </div>
+            <!-- Historial -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">📋 Historial de Transacciones</h2>
+                <ul id="transactionList" class="divide-y divide-gray-100 dark:divide-gray-700 max-h-52 overflow-y-auto"></ul>
+            </div>
+        </div>
+    </main>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -241,3 +380,5 @@
     });
   }
 </script>
+</body>
+</html>
