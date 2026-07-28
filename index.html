@@ -256,14 +256,13 @@
     signOut(auth);
   };
 
-  // 📊 ESCUCHAR TRANSACCIONES DEL USUARIO ACTUAL
+ // 📊 ESCUCHAR TODAS LAS TRANSACCIONES COMPARTIDAS
   function escucharTransaccionesUsuario(userId) {
     const txCollection = collection(db, "transactions");
-    const q = query(txCollection, where("userId", "==", userId));
 
     if (unsubscribeSnapshot) unsubscribeSnapshot();
 
-    unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+    unsubscribeSnapshot = onSnapshot(txCollection, (snapshot) => {
       window.transactions = snapshot.docs.map(docSnapshot => ({
         id: docSnapshot.id,
         ...docSnapshot.data()
