@@ -11,6 +11,8 @@
     </script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4F46E5">
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen pb-10 transition-colors duration-300">
 
@@ -474,6 +476,13 @@
         scales: { y: { beginAtZero: true } }
       }
     });
+  }
+</script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('Service Worker registrado con éxito'))
+      .catch((err) => console.log('Error al registrar Service Worker:', err));
   }
 </script>
 </body>
