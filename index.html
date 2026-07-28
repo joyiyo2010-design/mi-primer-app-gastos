@@ -11,8 +11,8 @@
     </script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#4F46E5">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen pb-10 transition-colors duration-300">
 
@@ -122,15 +122,18 @@
                     <p id="budgetStatus" class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">Sin presupuesto establecido</p>
                 </div>
 
-                <!-- Filtros -->
+                <!-- Filtros y Opciones -->
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <h2 class="text-xl font-semibold text-indigo-700 dark:text-indigo-400 mb-4">🔍 Filtros y Exportación</h2>
+                    <h2 class="text-xl font-semibold text-indigo-700 dark:text-indigo-400 mb-4">🔍 Filtros y Opciones</h2>
                     <div class="grid grid-cols-3 gap-2 mb-4">
                         <button onclick="setFilter('daily')" class="filter-btn bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 py-2 rounded-lg font-medium text-sm">Diario</button>
                         <button onclick="setFilter('weekly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Semanal</button>
                         <button onclick="setFilter('monthly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Mensual</button>
                     </div>
-                    <button onclick="exportToCSV()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm">📊 Exportar a Excel / CSV</button>
+                    <div class="space-y-2">
+                        <button onclick="exportToCSV()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm">📊 Exportar a Excel / CSV</button>
+                        <button onclick="clearAllTransactions()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm">🗑️ Limpiar Todos los Datos</button>
+                    </div>
                 </div>
             </div>
 
@@ -151,10 +154,19 @@
                     </div>
                 </div>
 
+                <!-- Gráfico de Gastos por Categoría -->
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🍩 Gastos por Categoría</h2>
                     <div class="relative max-w-xs mx-auto">
                         <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- NUEVO: Gráfico de Ingresos por Categoría -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-3 text-emerald-700 dark:text-emerald-400">🍩 Ingresos por Categoría</h2>
+                    <div class="relative max-w-xs mx-auto">
+                        <canvas id="incomeCategoryChart"></canvas>
                     </div>
                 </div>
 
@@ -173,7 +185,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // Configuración de Firebase
@@ -198,6 +210,7 @@
   let monthlyBudget = parseFloat(localStorage.getItem('myBudget')) || 0;
   let currentFilter = 'monthly';
   let categoryChartInstance = null;
+  let incomeCategoryChartInstance = null;
   let barChartInstance = null;
 
   document.getElementById('date').valueAsDate = new Date();
@@ -256,7 +269,7 @@
     signOut(auth);
   };
 
- // 📊 ESCUCHAR TODAS LAS TRANSACCIONES COMPARTIDAS
+  // 📊 ESCUCHAR TODAS LAS TRANSACCIONES COMPARTIDAS
   function escucharTransaccionesUsuario(userId) {
     const txCollection = collection(db, "transactions");
 
@@ -271,7 +284,7 @@
     });
   }
 
-  // ➕ GUARDAR TRANSACCIÓN (VINCULADA AL USUARIO)
+  // ➕ GUARDAR TRANSACCIÓN
   document.getElementById('transactionForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     if (!currentUser) return alert("Debes estar autenticado");
@@ -287,6 +300,7 @@
     try {
       await addDoc(collection(db, "transactions"), {
         userId: currentUser.uid,
+        userEmail: currentUser.email,
         type,
         desc,
         amount,
@@ -300,12 +314,32 @@
     }
   });
 
-  // 🗑️ ELIMINAR TRANSACCIÓN
+  // 🗑️ ELIMINAR TRANSACCIÓN INDIVIDUAL
   window.deleteTransaction = async function(docId) {
     try {
       await deleteDoc(doc(db, "transactions", docId));
     } catch (error) {
       console.error("Error al eliminar de Firestore:", error);
+    }
+  };
+
+  // 🗑️ LIMPIAR TODAS LAS TRANSACCIONES
+  window.clearAllTransactions = async function() {
+    if (window.transactions.length === 0) {
+      alert("No hay datos para eliminar.");
+      return;
+    }
+    const confirmDelete = confirm("⚠️ ¿Estás seguro de que deseas eliminar TODOS los registros guardados? Esta acción no se puede deshacer.");
+    if (confirmDelete) {
+      try {
+        for (const item of window.transactions) {
+          await deleteDoc(doc(db, "transactions", item.id));
+        }
+        alert("¡Todos los datos han sido borrados con éxito!");
+      } catch (error) {
+        console.error("Error al borrar los datos:", error);
+        alert("Ocurrió un error al intentar borrar los datos.");
+      }
     }
   };
 
@@ -345,11 +379,13 @@
     let totalIncome = 0;
     let totalExpense = 0;
     const categoryTotals = {};
+    const incomeCategoryTotals = {};
     listEl.innerHTML = '';
 
     filtered.forEach(item => {
       if (item.type === 'income') {
         totalIncome += item.amount;
+        incomeCategoryTotals[item.category] = (incomeCategoryTotals[item.category] || 0) + item.amount;
       } else {
         totalExpense += item.amount;
         categoryTotals[item.category] = (categoryTotals[item.category] || 0) + item.amount;
@@ -383,6 +419,7 @@
 
     updateBudgetProgress(totalExpense);
     renderCategoryChart(categoryTotals);
+    renderIncomeCategoryChart(incomeCategoryTotals);
     renderBarChart(totalIncome, totalExpense);
   }
 
@@ -450,6 +487,22 @@
         datasets: [{
           data: Object.values(categoryTotals),
           backgroundColor: ['#F59E0B', '#EF4444', '#8B5CF6', '#10B981', '#3B82F6', '#6366F1', '#EC4899', '#14B8A6']
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  function renderIncomeCategoryChart(incomeCategoryTotals) {
+    const ctx = document.getElementById('incomeCategoryChart').getContext('2d');
+    if (incomeCategoryChartInstance) incomeCategoryChartInstance.destroy();
+    incomeCategoryChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(incomeCategoryTotals),
+        datasets: [{
+          data: Object.values(incomeCategoryTotals),
+          backgroundColor: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899', '#14B8A6']
         }]
       },
       options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
