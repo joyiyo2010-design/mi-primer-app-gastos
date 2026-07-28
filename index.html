@@ -13,133 +13,166 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen pb-10 transition-colors duration-300">
-    <!-- Encabezado -->
-    <header class="bg-indigo-600 dark:bg-indigo-900 text-white py-6 shadow-md mb-8">
-        <div class="max-w-5xl mx-auto px-4 flex justify-between items-center">
+
+    <!-- 1. PANTALLA DE INICIO DE SESIÓN (AUTH) -->
+    <div id="authContainer" class="max-w-md mx-auto mt-20 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+        <h1 class="text-2xl font-bold mb-2 text-indigo-600 dark:text-indigo-400">💎 Control Financiero</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Inicia sesión para gestionar tus finanzas en la nube</p>
+
+        <!-- Botón de Google -->
+        <button onclick="loginGoogle()" class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 mb-4 transition">
+            <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            Iniciar sesión con Google
+        </button>
+
+        <div class="relative my-4">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300 dark:border-gray-600"></div></div>
+            <div class="relative flex justify-center text-xs text-gray-500 uppercase"><span class="bg-white dark:bg-gray-800 px-2">O con tu correo</span></div>
+        </div>
+
+        <!-- Formulario de Correo -->
+        <form id="authForm" class="space-y-3 text-left">
             <div>
-                <h1 class="text-3xl font-bold">💎 Control Financiero</h1>
-                <p class="text-indigo-200 text-sm mt-1">Ingresos, Gastos, Presupuesto y Estadísticas</p>
+                <label class="block text-xs font-medium mb-1">Correo Electrónico</label>
+                <input type="email" id="authEmail" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <!-- Botón Modo Oscuro -->
-            <button id="themeToggle" onclick="toggleTheme()" class="bg-indigo-700 dark:bg-indigo-800 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2">
-                <span id="themeIcon">🌙</span> <span id="themeText">Modo Oscuro</span>
-            </button>
-        </div>
-    </header>
-    <main class="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Columna Izquierda: Formulario, Presupuesto y Filtros -->
-        <div class="space-y-6">
-            
-            <!-- Formulario de Movimientos -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-semibold mb-4 text-indigo-700 dark:text-indigo-400">➕ Registrar Movimiento</h2>
-                <form id="transactionForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Tipo</label>
-                        <select id="type" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                            <option value="expense">📉 Gasto</option>
-                            <option value="income">📈 Ingreso (Ganancia)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Descripción</label>
-                        <input type="text" id="desc" placeholder="Ej. Sueldo, Almuerzo, Proyecto Freelance" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Monto ($)</label>
-                        <input type="number" id="amount" step="0.01" placeholder="0.00" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Categoría</label>
-                        <select id="category" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                            <option value="Comida">🍔 Comida</option>
-                            <option value="Transporte">🚗 Transporte</option>
-                            <option value="Ocio">🎬 Ocio</option>
-                            <option value="Salud">🏥 Salud</option>
-                            <option value="Ahorro">💰 Ahorro</option>
-                            <option value="Servicios">🏠 Servicios / Hogar</option>
-                            <option value="Educación">📚 Educación</option>
-                            <option value="Sueldo/Ingreso">💵 Sueldo / Ventas</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Fecha</label>
-                        <input type="date" id="date" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    </div>
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition duration-200">
-                        Guardar Registro
+            <div>
+                <label class="block text-xs font-medium mb-1">Contraseña</label>
+                <input type="password" id="authPassword" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="loginEmail()" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-sm transition">Entrar</button>
+                <button type="button" onclick="registerEmail()" class="w-1/2 border border-indigo-600 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700 font-semibold py-2 rounded-lg text-sm transition">Registrarse</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 2. PANTALLA PRINCIPAL DE LA APLICACIÓN (Oculta por defecto) -->
+    <div id="mainApp" class="hidden">
+        <header class="bg-indigo-600 dark:bg-indigo-900 text-white py-6 shadow-md mb-8">
+            <div class="max-w-5xl mx-auto px-4 flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold">💎 Control Financiero</h1>
+                    <p id="userEmailDisplay" class="text-indigo-200 text-xs mt-1"></p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="themeToggle" onclick="toggleTheme()" class="bg-indigo-700 dark:bg-indigo-800 hover:bg-indigo-800 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                        <span id="themeIcon">🌙</span> <span id="themeText">Oscuro</span>
                     </button>
-                </form>
-            </div>
-            <!-- Configuración de Presupuesto Límite -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🎯 Presupuesto Límite Mensual</h2>
-                <div class="flex gap-2 mb-3">
-                    <input type="number" id="budgetInput" placeholder="Ej. 1000" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    <button onclick="saveBudget()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">Establecer</button>
-                </div>
-                <!-- Barra de Progreso del Presupuesto -->
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden mt-2">
-                    <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <p id="budgetStatus" class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">Sin presupuesto establecido</p>
-            </div>
-            <!-- Filtros de Tiempo y Acciones de Archivos -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-indigo-700 dark:text-indigo-400">🔍 Filtros y Exportación</h2>
-                </div>
-                <div class="grid grid-cols-3 gap-2 mb-4">
-                    <button onclick="setFilter('daily')" class="filter-btn bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 py-2 rounded-lg font-medium text-sm">Diario</button>
-                    <button onclick="setFilter('weekly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Semanal</button>
-                    <button onclick="setFilter('monthly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Mensual</button>
-                </div>
-                <button onclick="exportToCSV()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm">
-                    📊 Exportar a Excel / CSV
-                </button>
-            </div>
-        </div>
-        <!-- Columna Derecha: Tarjetas, Gráficos e Historial -->
-        <div class="space-y-6">
-            
-            <!-- Resumen Financiero (3 Tarjetas) -->
-            <div class="grid grid-cols-3 gap-3">
-                <div class="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 text-center">
-                    <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Ingresos</span>
-                    <h3 id="incomeDisplay" class="text-lg font-bold text-emerald-700 dark:text-emerald-300">$0.00</h3>
-                </div>
-                <div class="bg-rose-50 dark:bg-rose-950/40 p-4 rounded-xl border border-rose-200 dark:border-rose-800 text-center">
-                    <span class="text-xs text-rose-600 dark:text-rose-400 font-semibold uppercase">Gastos</span>
-                    <h3 id="expenseDisplay" class="text-lg font-bold text-rose-700 dark:text-rose-300">$0.00</h3>
-                </div>
-                <div class="bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-xl border border-indigo-200 dark:border-indigo-800 text-center">
-                    <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase">Balance</span>
-                    <h3 id="balanceDisplay" class="text-lg font-bold text-indigo-900 dark:text-indigo-200">$0.00</h3>
+                    <button onclick="logout()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">🚪 Salir</button>
                 </div>
             </div>
-            <!-- Gráfico 1: Categorías (Rosquilla) -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🍩 Gastos por Categoría</h2>
-                <div class="relative max-w-xs mx-auto">
-                    <canvas id="categoryChart"></canvas>
+        </header>
+
+        <main class="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Columna Izquierda: Formulario, Presupuesto y Filtros -->
+            <div class="space-y-6">
+                <!-- Formulario de Movimientos -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold mb-4 text-indigo-700 dark:text-indigo-400">➕ Registrar Movimiento</h2>
+                    <form id="transactionForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Tipo</label>
+                            <select id="type" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option value="expense">📉 Gasto</option>
+                                <option value="income">📈 Ingreso (Ganancia)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Descripción</label>
+                            <input type="text" id="desc" placeholder="Ej. Sueldo, Almuerzo, Proyecto Freelance" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Monto ($)</label>
+                            <input type="number" id="amount" step="0.01" placeholder="0.00" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Categoría</label>
+                            <select id="category" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option value="Comida">🍔 Comida</option>
+                                <option value="Transporte">🚗 Transporte</option>
+                                <option value="Ocio">🎬 Ocio</option>
+                                <option value="Salud">🏥 Salud</option>
+                                <option value="Ahorro">💰 Ahorro</option>
+                                <option value="Servicios">🏠 Servicios / Hogar</option>
+                                <option value="Educación">📚 Educación</option>
+                                <option value="Sueldo/Ingreso">💵 Sueldo / Ventas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Fecha</label>
+                            <input type="date" id="date" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition duration-200">Guardar Registro</button>
+                    </form>
+                </div>
+
+                <!-- Presupuesto -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🎯 Presupuesto Límite Mensual</h2>
+                    <div class="flex gap-2 mb-3">
+                        <input type="number" id="budgetInput" placeholder="Ej. 1000" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <button onclick="saveBudget()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">Establecer</button>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden mt-2">
+                        <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p id="budgetStatus" class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">Sin presupuesto establecido</p>
+                </div>
+
+                <!-- Filtros -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold text-indigo-700 dark:text-indigo-400 mb-4">🔍 Filtros y Exportación</h2>
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <button onclick="setFilter('daily')" class="filter-btn bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 py-2 rounded-lg font-medium text-sm">Diario</button>
+                        <button onclick="setFilter('weekly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Semanal</button>
+                        <button onclick="setFilter('monthly')" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg font-medium text-sm">Mensual</button>
+                    </div>
+                    <button onclick="exportToCSV()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm">📊 Exportar a Excel / CSV</button>
                 </div>
             </div>
-            <!-- Gráfico 2: Comparativa Mensual (Barras) -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">📊 Comparativa de Ingresos vs Gastos</h2>
-                <canvas id="barChart"></canvas>
+
+            <!-- Columna Derecha: Tarjetas, Gráficos e Historial -->
+            <div class="space-y-6">
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 text-center">
+                        <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Ingresos</span>
+                        <h3 id="incomeDisplay" class="text-lg font-bold text-emerald-700 dark:text-emerald-300">$0.00</h3>
+                    </div>
+                    <div class="bg-rose-50 dark:bg-rose-950/40 p-4 rounded-xl border border-rose-200 dark:border-rose-800 text-center">
+                        <span class="text-xs text-rose-600 dark:text-rose-400 font-semibold uppercase">Gastos</span>
+                        <h3 id="expenseDisplay" class="text-lg font-bold text-rose-700 dark:text-rose-300">$0.00</h3>
+                    </div>
+                    <div class="bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-xl border border-indigo-200 dark:border-indigo-800 text-center">
+                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase">Balance</span>
+                        <h3 id="balanceDisplay" class="text-lg font-bold text-indigo-900 dark:text-indigo-200">$0.00</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">🍩 Gastos por Categoría</h2>
+                    <div class="relative max-w-xs mx-auto">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">📊 Comparativa de Ingresos vs Gastos</h2>
+                    <canvas id="barChart"></canvas>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">📋 Historial de Transacciones</h2>
+                    <ul id="transactionList" class="divide-y divide-gray-100 dark:divide-gray-700 max-h-52 overflow-y-auto"></ul>
+                </div>
             </div>
-            <!-- Historial -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold mb-3 text-indigo-700 dark:text-indigo-400">📋 Historial de Transacciones</h2>
-                <ul id="transactionList" class="divide-y divide-gray-100 dark:divide-gray-700 max-h-52 overflow-y-auto"></ul>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   // Configuración de Firebase
   const firebaseConfig = {
@@ -151,12 +184,14 @@
     appId: "1:391296606617:web:e9d413c9fb36d321dc7308"
   };
 
-  // Inicializar Firebase
+  // Inicializar Firebase, Firestore y Auth
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const txCollection = collection(db, "transactions");
+  const auth = getAuth(app);
+  const googleProvider = new GoogleAuthProvider();
 
-  // Variables globales de estado
+  let currentUser = null;
+  let unsubscribeSnapshot = null;
   window.transactions = [];
   let monthlyBudget = parseFloat(localStorage.getItem('myBudget')) || 0;
   let currentFilter = 'monthly';
@@ -166,9 +201,80 @@
   document.getElementById('date').valueAsDate = new Date();
   if (monthlyBudget > 0) document.getElementById('budgetInput').value = monthlyBudget;
 
-  // 1. Guardar Movimiento en Firestore
+  // 🔄 DETECTOR DE ESTADO DE SESIÓN (AUTH)
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('authContainer').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('userEmailDisplay').textContent = `Usuario: ${user.email}`;
+      escucharTransaccionesUsuario(user.uid);
+    } else {
+      currentUser = null;
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+      window.transactions = [];
+      document.getElementById('authContainer').classList.remove('hidden');
+      document.getElementById('mainApp').classList.add('hidden');
+    }
+  });
+
+  // 🔑 FUNCIONES DE AUTENTICACIÓN
+  window.loginGoogle = async function() {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      alert("Error al iniciar sesión con Google: " + error.message);
+    }
+  };
+
+  window.loginEmail = async function() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    if (!email || !password) return alert("Por favor ingresa correo y contraseña.");
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      alert("Error al iniciar sesión: " + error.message);
+    }
+  };
+
+  window.registerEmail = async function() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    if (!email || !password) return alert("Por favor ingresa correo y contraseña.");
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("¡Cuenta creada exitosamente!");
+    } catch (error) {
+      alert("Error al registrarse: " + error.message);
+    }
+  };
+
+  window.logout = function() {
+    signOut(auth);
+  };
+
+  // 📊 ESCUCHAR TRANSACCIONES DEL USUARIO ACTUAL
+  function escucharTransaccionesUsuario(userId) {
+    const txCollection = collection(db, "transactions");
+    const q = query(txCollection, where("userId", "==", userId));
+
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+    unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+      window.transactions = snapshot.docs.map(docSnapshot => ({
+        id: docSnapshot.id,
+        ...docSnapshot.data()
+      }));
+      render();
+    });
+  }
+
+  // ➕ GUARDAR TRANSACCIÓN (VINCULADA AL USUARIO)
   document.getElementById('transactionForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    if (!currentUser) return alert("Debes estar autenticado");
+
     const type = document.getElementById('type').value;
     const desc = document.getElementById('desc').value;
     const amount = parseFloat(document.getElementById('amount').value);
@@ -178,7 +284,8 @@
     if (!desc || isNaN(amount)) return;
 
     try {
-      await addDoc(txCollection, {
+      await addDoc(collection(db, "transactions"), {
+        userId: currentUser.uid,
         type,
         desc,
         amount,
@@ -192,16 +299,7 @@
     }
   });
 
-  // 2. Escuchar cambios en tiempo real desde Firestore
-  onSnapshot(txCollection, (snapshot) => {
-    window.transactions = snapshot.docs.map(docSnapshot => ({
-      id: docSnapshot.id,
-      ...docSnapshot.data()
-    }));
-    render();
-  });
-
-  // 3. Eliminar Movimiento de Firestore
+  // 🗑️ ELIMINAR TRANSACCIÓN
   window.deleteTransaction = async function(docId) {
     try {
       await deleteDoc(doc(db, "transactions", docId));
@@ -210,7 +308,6 @@
     }
   };
 
-  // Funciones de presupuesto y filtros
   window.saveBudget = function() {
     const val = parseFloat(document.getElementById('budgetInput').value);
     monthlyBudget = isNaN(val) ? 0 : val;
@@ -240,7 +337,6 @@
     });
   }
 
-  // 4. Renderizado Principal
   function render() {
     const filtered = getFilteredTransactions();
     const listEl = document.getElementById('transactionList');
@@ -317,11 +413,11 @@
     if (html.classList.contains('dark')) {
       html.classList.remove('dark');
       icon.textContent = '🌙';
-      text.textContent = 'Modo Oscuro';
+      text.textContent = 'Oscuro';
     } else {
       html.classList.add('dark');
       icon.textContent = '☀️';
-      text.textContent = 'Modo Claro';
+      text.textContent = 'Claro';
     }
   };
 
